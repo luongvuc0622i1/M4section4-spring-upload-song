@@ -1,8 +1,10 @@
 package com.codegym.controller;
 
-import com.codegym.model.Product;
+import com.codegym.model.File;
+import com.codegym.model.FileForm;
 import com.codegym.model.ProductForm;
-import com.codegym.service.IProductService;
+import com.codegym.service.FileService;
+import com.codegym.service.IFileService;
 import com.codegym.service.ProductService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -15,26 +17,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-//@Controller
-@RequestMapping("/product")
-public class ProductController {
-    private final IProductService productService = new ProductService();
+@Controller
+@RequestMapping("/file")
+public class FileController {
+    private final IFileService fileService = new FileService();
 
     @GetMapping("")
     public String index(Model model) {
-        List<Product> products = productService.findAll();
-        model.addAttribute("products", products);
+        List<File> files = fileService.findAll();
+        model.addAttribute("files", files);
         return "/index";
     }
 
     @GetMapping("/create")
     public ModelAndView showCreateForm() {
         ModelAndView modelAndView = new ModelAndView("/create");
-        modelAndView.addObject("productForm", new ProductForm());
+        modelAndView.addObject("fileForm", new FileForm());
         return modelAndView;
     }
 
@@ -42,20 +43,20 @@ public class ProductController {
     private String fileUpload;
 
     @PostMapping("/save")
-    public ModelAndView saveProduct(@ModelAttribute ProductForm productForm) {
-        MultipartFile multipartFile = productForm.getImage();
+    public ModelAndView saveProduct(@ModelAttribute FileForm fileForm) {
+        MultipartFile multipartFile = fileForm.getName();
         String fileName = multipartFile.getOriginalFilename();
         try {
-            FileCopyUtils.copy(productForm.getImage().getBytes(), new java.io.File(fileUpload + fileName));
+            FileCopyUtils.copy(fileForm.getName().getBytes(), new java.io.File(fileUpload + fileName));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        Product product = new Product(productForm.getId(), productForm.getName(),
-                productForm.getDescription(), fileName);
-        productService.save(product);
+        File file = new File(fileForm.getId(), fileName, fileForm.getOriginalFilename(), fileForm.getContentType(), fileForm.getSize(), fileForm.getDate());
+        fileService.save(file);
         ModelAndView modelAndView = new ModelAndView("/create");
-        modelAndView.addObject("productForm", productForm);
-        modelAndView.addObject("message", "Created new product successfully !");
+        modelAndView.addObject("fileForm", fileForm);
+        modelAndView.addObject("message", "Created new file successfully !");
         return modelAndView;
     }
 }
+
